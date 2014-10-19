@@ -18,10 +18,13 @@ activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
 
 ## What is mean total number of steps taken per day?
 
+Calculate the total steps taken each day.
+
 ```r
 totalStepsByDate <- aggregate(steps ~ date, data = activity, sum, na.action = na.omit)
 ```
 
+Plot the histogram.
 
 ```r
 print(
@@ -32,9 +35,9 @@ print(
     color = I("black"), 
     fill = I("royalblue3"), 
     binwidth = 400, 
-    main = "Average number of steps taken by 5-minute intervals", 
-    xlab = "5-minute Interval", 
-    ylab = "Step Frequency"
+    main = "Histogram of steps taken per day.", 
+    xlab = "Total Daily Steps", 
+    ylab = "Frequency"
   )
 )
 ```
@@ -64,9 +67,15 @@ median(totalStepsByDate$steps)
 
 ## What is the average daily activity pattern?
 
+Calculate the mean steps for each interval.
+
 ```r
 averageStepsByInterval <- aggregate(steps ~ interval, data = activity, mean, na.action = na.omit)
+```
 
+Plot the series.
+
+```r
 print(
   qplot(
     interval, 
@@ -80,12 +89,12 @@ print(
 )
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
 
 The 5-minute interval with the maximum steps on average is:
 
 ```r
-averageStepsByInterval[averageStepsByInterval$steps ==max(averageStepsByInterval$steps), ]
+averageStepsByInterval[averageStepsByInterval$steps == max(averageStepsByInterval$steps), ]
 ```
 
 ```
@@ -95,7 +104,7 @@ averageStepsByInterval[averageStepsByInterval$steps ==max(averageStepsByInterval
 
 ## Imputing missing values
 
-Total number of missing values
+Total number of missing values:
 
 ```r
 sum(is.na(activity$steps))
@@ -105,7 +114,13 @@ sum(is.na(activity$steps))
 ## [1] 2304
 ```
 
-### Replace missing values with the mean for the 5-minute interval
+**Imputation Method**
+
+Replace missing values with the mean for the 5-minute interval. 
+
+1. Merge original and average datasets
+2. Replace NA values with mean value.
+
 Step 1: Merge activity and averageStepsByInterval datasets
 
 ```r
@@ -113,7 +128,7 @@ activityImputed <- merge(activity, averageStepsByInterval, by.x = "interval", by
 names(activityImputed) <- c("interval", "steps", "date", "meanStepsByInterval")
 ```
 
-Step2: replace NA values with mean value.
+Step2: Replace NA values with mean value.
 
 ```r
 activityImputed$steps[is.na(activityImputed$steps)] <- activityImputed[is.na(activityImputed$steps), "meanStepsByInterval"]
@@ -132,14 +147,14 @@ print(
     color = I("black"), 
     fill = I("seagreen4"), 
     binwidth = 400, 
-    main = "Average number of steps taken by 5-minute intervals", 
-    xlab = "5-minute Interval", 
-    ylab = "Step Frequency"
+    main = "Histogram of steps taken per day.", 
+    xlab = "Total Daily Steps", 
+    ylab = "Frequency"
   )
 )
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
 
 The mean of the total number of steps is:
 
@@ -164,11 +179,21 @@ median(totalStepsByDateImputed$steps)
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+Add daytype factor column indicating if the date is a weekday or weekend.
+
 ```r
 activityImputed$daytype <- factor(ifelse(weekdays(activityImputed$date) %in% c("Saturday", "Sunday"), "weekend", "weekday"))
+```
 
+Take the average steps by interval and day type.
+
+```r
 averageStepsByIntervalAndDayType <- aggregate(steps ~ interval + daytype, data = activityImputed, mean)
+```
 
+Plot the two day type series.
+
+```r
 print(
   qplot(
     interval, 
@@ -184,4 +209,4 @@ print(
 )
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-15-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-18-1.png) 
